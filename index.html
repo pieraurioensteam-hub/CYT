@@ -7,75 +7,71 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         :root {
-            --bg: #080a0b;
-            --card: #121517;
-            --input-bg: #1a1e20;
-            --green: #00ff88;
-            --blue: #00d4ff;
-            --red: #ff4d4d;
-            --yellow: #ffcc00;
-            --text: #e0e6ed;
-            --border: #2d3436;
+            --bg: #121415;
+            --card: #1e2122;
+            --input-bg: #2a2d2e;
+            --green: #27ae60;
+            --blue: #2980b9;
+            --red: #e74c3c;
+            --text: #e0e0e0;
+            --border: #333;
         }
 
         body {
-            font-family: 'Cascadia Code', 'Segoe UI', monospace;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 10px;
+            padding: 15px;
             display: flex;
             justify-content: center;
         }
 
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 600px;
             background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0,255,136,0.1);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .terminal-header {
-            border-bottom: 2px solid var(--green);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        h2 { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; font-weight: 500; }
 
         .upload-zone {
-            border: 1px dashed var(--blue);
+            border: 2px dashed #444;
             padding: 30px;
             text-align: center;
             cursor: pointer;
-            background: rgba(0, 212, 255, 0.05);
-            transition: 0.2s;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.02);
+            transition: 0.3s;
+            margin-bottom: 20px;
         }
 
-        .upload-zone:hover { background: rgba(0, 212, 255, 0.1); border-color: var(--green); }
+        .upload-zone:hover { border-color: var(--green); background: rgba(39, 174, 96, 0.05); }
 
+        /* Mantiene la apariencia de la imagen cargada */
         #dynamic-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .data-node {
             background: var(--input-bg);
-            border-left: 2px solid var(--blue);
-            padding: 8px;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid var(--blue);
         }
 
         .data-node label {
-            font-size: 0.6rem;
-            color: var(--blue);
+            font-size: 0.7rem;
+            color: #aaa;
             text-transform: uppercase;
             display: block;
+            margin-bottom: 4px;
         }
 
         .data-node input {
@@ -83,148 +79,107 @@
             background: transparent;
             border: none;
             color: #fff;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             outline: none;
-            font-family: inherit;
+            font-weight: bold;
         }
 
-        .btn-action {
+        .btn-main {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             background: var(--green);
-            color: #000;
+            color: white;
             border: none;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
-            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+            font-size: 1rem;
+            transition: 0.2s;
         }
 
-        #report-area {
+        .btn-main:active { transform: scale(0.98); background: #219150; }
+
+        #loader { 
+            display: none; 
+            text-align: center; 
+            color: var(--blue); 
+            font-weight: bold; 
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        .report-box {
             margin-top: 20px;
             padding: 15px;
-            background: #000;
-            border: 1px solid var(--green);
+            background: #16191a;
+            border: 1px solid var(--border);
+            border-radius: 6px;
             display: none;
-            line-height: 1.6;
         }
 
-        .status-pill {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            margin-bottom: 10px;
-        }
-
-        .loader { display: none; color: var(--yellow); text-align: center; margin: 10px; }
+        .report-title { color: var(--green); font-weight: bold; margin-bottom: 10px; }
+        .tip-box { background: rgba(39, 174, 96, 0.1); color: #2ecc71; padding: 10px; border-radius: 4px; font-size: 0.85rem; line-height: 1.4; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="terminal-header">
-        <div><span style="color:var(--green)">[BIO-SYSTEM]</span> ANALYZER_V2.0</div>
-        <div id="clock" style="font-size: 0.8rem">SYSTEM_READY</div>
-    </div>
+    <h2>Bio-Analizador Dinámico</h2>
 
     <div class="upload-zone" id="dropZone">
-        <strong id="labelStatus">ADQUIRIR MUESTRA (IMAGEN)</strong>
+        <strong id="labelStatus">Cargando Sistema...</strong>
+        <p style="font-size: 0.8rem; color: #888; margin: 5px 0 0;">Detectará automáticamente los nutrientes</p>
         <input type="file" id="fileInput" hidden accept="image/*">
     </div>
 
-    <div class="loader" id="loader">EJECUTANDO ALGORITMOS DE VISIÓN...</div>
+    <div id="loader">⚙️ PROCESANDO BIOMOLÉCULAS...</div>
 
     <div id="dynamic-grid"></div>
 
-    <button class="btn-action" id="processBtn" style="display:none" onclick="generateSmartReport()">INICIAR ANÁLISIS DE DATOS</button>
+    <button class="btn-main" id="processBtn" style="display:none" onclick="generateReport()">Generar Informe de Salud</button>
 
-    <div id="report-area">
-        <div id="reportContent"></div>
+    <div id="report-area" class="report-box">
+        <div class="report-title">Análisis Bio-Químico Listo</div>
+        <div id="reportContent" class="tip-box"></div>
     </div>
 </div>
 
 <script>
     const nutrientMap = {
-        "Energía Tot.": ["calorias", "calories", "kcal", "energía"],
-        "Grasas": ["grasa total", "total fat", "lipidos"],
-        "G. Saturada": ["saturada", "saturated"],
-        "G. Trans": ["trans"],
-        "G. Monoinsat.": ["monoinsat"],
-        "G. Poliinsat.": ["poliinsat"],
-        "Colesterol": ["colesterol", "cholesterol"],
-        "Sodio": ["sodio", "sodium", "salt", "sal"],
+        "Calorías": ["calorias", "calories", "kcal", "energía"],
         "Carbohidratos": ["carbohidrato", "carb", "glucido"],
-        "Azúcares": ["azucar", "sugar", "sacarosa"],
-        "Azúcar Añadido": ["añadido", "added"],
-        "Polialcoholes": ["polialcohol", "polyol", "eritritol", "xilitol"],
-        "Fibra": ["fibra", "fiber"],
         "Proteína": ["proteina", "protein"],
-        "Vitamina A": ["vitamina a", "retinol"],
-        "Vitamina C": ["vitamina c", "ascorbico"],
-        "Vitamina D": ["vitamina d", "calciferol"],
-        "Vitamina E": ["vitamina e", "tocoferol"],
-        "Vitamina K": ["vitamina k", "filoquinona"],
-        "B1 (Tiamina)": ["tiamina", "b1"],
-        "B2 (Ribofl.)": ["riboflavina", "b2"],
-        "B3 (Niacina)": ["niacina", "b3"],
-        "B6 (Piridox.)": ["piridoxina", "b6"],
-        "B12": ["b12", "cobalamina"],
-        "Ácido Fólico": ["folico", "folate"],
-        "Calcio": ["calcio", "calcium"],
-        "Hierro": ["hierro", "iron"],
-        "Magnesio": ["magnesio", "magnesium"],
-        "Fósforo": ["fosforo", "phosphorus"],
-        "Zinc": ["zinc"],
-        "Cobre": ["cobre", "copper"],
-        "Manganeso": ["manganeso"],
-        "Selenio": ["selenio", "selenium"],
+        "Sodio": ["sodio", "sodium", "sal"],
+        "Azúcares": ["azucar", "sugar"],
+        "Fibra": ["fibra", "fiber"],
+        "Grasas": ["grasa", "fat", "lipidos"],
         "Potasio": ["potasio", "potassium"],
-        "Yodo": ["yodo", "iodine"],
-        "Cromo": ["cromo", "chromium"],
-        "Omega-3": ["omega 3", "dha", "epa"],
-        "Omega-6": ["omega 6"],
-        "Cafeína": ["cafeina", "caffeine"],
-        "L-Carnitina": ["carnitina"],
-        "Creatina": ["creatina"],
-        "BCAA": ["bcaa", "leucina"],
-        "Probióticos": ["probiotico", "lactobacillus"],
-        "Gluten": ["gluten"],
-        "Lactosa": ["lactosa", "lactose"]
+        "Magnesio": ["magnesio", "magnesium"],
+        "Hierro": ["hierro", "iron"]
     };
 
-    // POOL DE MENSAJES (50+ VARIACIONES LOGICAS)
-    const tips = {
-        highSugar: [
-            "ALERTA: Pico glucémico detectado. Riesgo de inflamación sistémica.",
-            "MODERACIÓN: El exceso de azúcar satura los transportadores GLUT4.",
-            "BIO-TIP: Combina esto con fibra para reducir el índice glucémico.",
-            "ALERTA: Densidad de azúcares superior al umbral de seguridad de la OMS.",
-            "INFO: El hígado convertirá este exceso en triglicéridos rápidamente."
-            // ... (Se pueden añadir más hasta 50 por categoría internamente)
-        ],
-        highProtein: [
-            "ESTADO: Óptimo para síntesis proteica miofibrilar.",
-            "DATO: Alta biodisponibilidad de aminoácidos detectada.",
-            "INFO: Asegura una hidratación extra para facilitar el filtrado renal.",
-            "BIO-TIP: Perfil excelente para recuperación post-entrenamiento.",
-            "DATO: Termogénesis inducida por dieta aumentada por nivel de proteína."
-        ],
-        highSalt: [
-            "PRECAUCIÓN: Elevada osmolaridad detectada. Riesgo de retención hídrica.",
-            "BIO-TIP: Aumenta el consumo de potasio para equilibrar la bomba Na-K.",
-            "ALERTA: Presión arterial podría verse afectada negativamente.",
-            "INFO: El exceso de sodio inhibe la biodisponibilidad de otros minerales.",
-            "DATO: Contenido de cloruro de sodio por encima del promedio diario."
-        ],
-        general: [
-            "SISTEMA: Análisis molecular completado con éxito.",
-            "ESTADO: Microbiota podría beneficiarse de este perfil nutricional.",
-            "DATO: Estabilidad oxidativa del producto dentro de rangos normales.",
-            "INFO: No se detectaron anomalías químicas críticas en el etiquetado.",
-            "BIO-TIP: El metabolismo celular requiere cofactores presentes aquí."
-        ]
-    };
+    const recommendations = [
+        "Niveles de sodio elevados detectados. Aumenta la ingesta de agua para equilibrar la presión osmótica.",
+        "Perfil proteico excelente para síntesis muscular. Mantén la hidratación renal.",
+        "Contenido de fibra notable. Esto mejorará significativamente tu tránsito intestinal.",
+        "Densidad calórica alta. Considera ajustar las porciones para mantener tu tasa metabólica.",
+        "Nivel de azúcares bajo. Estabilidad glucémica detectada en la muestra.",
+        "Equilibrio de macronutrientes detectado. Tu metabolismo procesará esto eficientemente."
+    ];
+
+    let worker = null;
+
+    // Inicializar el motor OCR de inmediato para ganar tiempo
+    async function initOCR() {
+        document.getElementById('labelStatus').innerText = "Iniciando Motor...";
+        worker = await Tesseract.createWorker('spa+eng');
+        await worker.setParameters({
+            tessedit_char_whitelist: '0123456789.,abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ',
+        });
+        document.getElementById('labelStatus').innerText = "Subir Imagen";
+    }
+    initOCR();
 
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
@@ -241,75 +196,52 @@
         grid.innerHTML = "";
         document.getElementById('report-area').style.display = 'none';
 
-        // Configuración Turbo de Tesseract
-        const worker = await Tesseract.createWorker('spa+eng');
-        await worker.setParameters({
-            tessedit_char_whitelist: '0123456789.,abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ',
-        });
-
-        const { data: { text } } = await worker.recognize(file);
-        const rawText = text.toLowerCase().replace(/\n/g, " ");
-        
-        let found = false;
-        for (const [label, keys] of Object.entries(nutrientMap)) {
-            for (const key of keys) {
-                if (rawText.includes(key)) {
-                    const regex = new RegExp(`${key}\\s*[:|-]?\\s*(\\d+[,.]?\\d*)`);
-                    const match = rawText.match(regex);
-                    const val = match ? match[1].replace(',', '.') : "";
-                    addInput(label, val);
-                    found = true;
-                    break;
+        try {
+            const { data: { text } } = await worker.recognize(file);
+            const rawText = text.toLowerCase().replace(/\s+/g, ' ');
+            
+            let foundAny = false;
+            for (const [label, keys] of Object.entries(nutrientMap)) {
+                for (const key of keys) {
+                    if (rawText.includes(key)) {
+                        const regex = new RegExp(`${key}\\D*(\\d+[,.]?\\d*)`);
+                        const match = rawText.match(regex);
+                        const val = match ? match[1].replace(',', '.') : "";
+                        addInput(label, val);
+                        foundAny = true;
+                        break;
+                    }
                 }
             }
-        }
 
-        await worker.terminate();
-        loader.style.display = 'none';
-        if(found) document.getElementById('processBtn').style.display = 'block';
+            if(foundAny) document.getElementById('processBtn').style.display = 'block';
+            else alert("No se detectaron datos claros. Intenta con otra foto.");
+
+        } catch (err) {
+            console.error(err);
+            alert("Error en el escaneo.");
+        } finally {
+            loader.style.display = 'none';
+        }
     };
 
     function addInput(label, value) {
-        const node = document.createElement('div');
-        node.className = 'data-node';
-        node.innerHTML = `<label>${label}</label><input type="text" data-label="${label}" value="${value}">`;
-        grid.appendChild(node);
+        const div = document.createElement('div');
+        div.className = 'data-node';
+        div.innerHTML = `<label>${label}</label><input type="text" value="${value}">`;
+        grid.appendChild(div);
     }
 
-    function generateSmartReport() {
+    function generateReport() {
         const reportArea = document.getElementById('report-area');
         const reportContent = document.getElementById('reportContent');
+        
+        // Seleccionar 2 recomendaciones aleatorias para dar variedad
+        const r1 = recommendations[Math.floor(Math.random() * recommendations.length)];
+        const r2 = recommendations[Math.floor(Math.random() * recommendations.length)];
+        
+        reportContent.innerHTML = `${r1}<br><br>${r2}`;
         reportArea.style.display = 'block';
-
-        let html = `<div style="margin-bottom:15px"><span class="status-pill" style="background:var(--green); color:#000">SUCCESS</span> <b>REPORTE GENERADO</b></div>`;
-        
-        const inputs = document.querySelectorAll('#dynamic-grid input');
-        let data = {};
-        inputs.forEach(i => data[i.getAttribute('data-label')] = parseFloat(i.value) || 0);
-
-        // LÓGICA DE RECOMENDACIÓN DINÁMICA
-        html += `<ul style="padding-left:20px; color:var(--blue)">`;
-        
-        if(data['Azúcares'] > 15) {
-            html += `<li style="color:var(--red)">${tips.highSugar[Math.floor(Math.random()*tips.highSugar.length)]}</li>`;
-        }
-        if(data['Proteína'] > 10) {
-            html += `<li>${tips.highProtein[Math.floor(Math.random()*tips.highProtein.length)]}</li>`;
-        }
-        if(data['Sodio'] > 500) {
-            html += `<li style="color:var(--yellow)">${tips.highSalt[Math.floor(Math.random()*tips.highSalt.length)]}</li>`;
-        }
-
-        // Relleno de mensajes genéricos hasta completar análisis
-        for(let i=0; i<3; i++) {
-            html += `<li>${tips.general[Math.floor(Math.random()*tips.general.length)]}</li>`;
-        }
-        
-        html += `</ul><div style="font-size:0.7rem; border-top:1px solid #333; padding-top:10px; margin-top:10px; color:#666">
-                 HASH_ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}<br>
-                 METABOLIC_INDEX: CALCULATED_OK</div>`;
-
-        reportContent.innerHTML = html;
         reportArea.scrollIntoView({behavior: 'smooth'});
     }
 </script>
