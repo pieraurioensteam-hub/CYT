@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Analizador Dinámico Pro</title>
+    <title>Calculadora Inteligente Bio-Nutricional</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         :root {
-            --bg: #1a1c1d;
-            --card: #242728;
-            --input-bg: #2d3132;
+            --bg: #121415;
+            --card: #1e2122;
+            --input-bg: #2a2d2e;
             --green: #27ae60;
             --blue: #2980b9;
             --text: #e0e0e0;
-            --border: #3a3f41;
         }
 
         body {
@@ -21,7 +20,7 @@
             background: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
         }
@@ -29,51 +28,47 @@
         .card {
             background: var(--card);
             width: 100%;
-            max-width: 550px;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            border: 1px solid var(--border);
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-
-        h2 { margin-top: 0; font-size: 1.8rem; font-weight: 600; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
 
         .upload-area {
-            border: 2px dashed #4a4f52;
-            padding: 40px;
+            border: 2px dashed #444;
+            padding: 30px;
             text-align: center;
-            margin: 20px 0;
+            margin-bottom: 20px;
             cursor: pointer;
             border-radius: 8px;
-            transition: 0.2s;
+            transition: 0.3s;
         }
 
-        .upload-area:hover { border-color: var(--green); background: rgba(39, 174, 96, 0.05); }
+        .upload-area:hover { border-color: var(--green); }
 
         #dynamic-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .input-group {
             background: var(--input-bg);
-            padding: 15px;
-            border-radius: 4px;
-            border-left: 4px solid var(--blue); /* Estilo exacto de tu imagen */
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--blue);
         }
 
-        label { font-size: 0.7rem; color: #888; display: block; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+        label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; text-transform: uppercase; }
         
         input {
             width: 100%;
             background: transparent;
             border: none;
             color: white;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             outline: none;
-            font-weight: 500;
         }
 
         .btn-main {
@@ -81,66 +76,47 @@
             background: var(--green);
             color: white;
             border: none;
-            padding: 18px;
+            padding: 16px;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
-            font-size: 1.1rem;
-            transition: 0.3s;
         }
 
-        .btn-main:hover { filter: brightness(1.1); }
-
-        #loader { display: none; text-align: center; margin-bottom: 20px; color: var(--blue); font-weight: bold; animation: pulse 1.5s infinite; }
+        #loader { display: none; text-align: center; margin-bottom: 20px; color: var(--blue); font-weight: bold; }
         
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
         .results {
-            margin-top: 25px;
-            padding: 20px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #16191a;
+            border-radius: 6px;
             display: none;
+            border: 1px solid #333;
         }
 
-        .res-header { color: var(--green); font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
-        
-        .tip-container { 
-            background: rgba(39, 174, 96, 0.08); 
-            padding: 15px; 
-            border-radius: 4px; 
-            color: #4ed387; 
-            font-size: 0.95rem; 
-            line-height: 1.5;
-        }
-
-        .recommendation-list { margin-top: 15px; padding-left: 20px; color: #bbb; font-size: 0.85rem; }
-        .recommendation-list li { margin-bottom: 8px; }
+        .tip { font-size: 0.85rem; padding: 10px; border-radius: 4px; margin-top: 10px; background: rgba(39, 174, 96, 0.1); color: #2ecc71; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Bio-Analizador Dinámico</h2>
+    <h2 style="margin-top:0; border-bottom: 1px solid #333; padding-bottom: 10px;">Bio-Analizador Dinámico</h2>
     
     <div class="upload-area" id="dropZone">
-        <strong id="btnLabel" style="font-size: 1.2rem;">Subir Imagen</strong>
-        <p style="font-size: 0.85rem; color: #888; margin-top: 8px;">Detectará automáticamente los nutrientes</p>
+        <strong id="btnLabel">Cargando...</strong>
+        <p style="font-size: 0.8rem; color: #888; margin: 5px 0 0;">Detectará automáticamente los nutrientes</p>
         <input type="file" id="fileInput" hidden accept="image/*">
     </div>
 
-    <div id="loader">⚙️ PROCESANDO BIOMOLÉCULAS...</div>
+    <div id="loader">Analizando composición química...</div>
 
+    <!-- Aquí aparecerán los recuadros automáticamente -->
     <div id="dynamic-container"></div>
 
     <button class="btn-main" id="calcBtn" style="display:none;" onclick="calculate()">Generar Informe de Salud</button>
 
     <div id="results" class="results">
-        <div class="res-header">Análisis Bio-Químico Listo</div>
-        <div class="tip-container" id="resContent"></div>
-        <ul class="recommendation-list" id="recList"></ul>
+        <div id="resContent"></div>
     </div>
 </div>
 
@@ -149,28 +125,33 @@
     const container = document.getElementById('dynamic-container');
     const loader = document.getElementById('loader');
     const btnLabel = document.getElementById('btnLabel');
-    const calcBtn = document.getElementById('calcBtn');
 
-    // Pre-cargar Worker para máxima velocidad
-    let worker = null;
-    (async () => {
-        worker = await Tesseract.createWorker('spa+eng');
-        await worker.setParameters({ tessedit_char_whitelist: '0123456789.,ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ' });
-    })();
+    if(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        btnLabel.innerText = "Abrir Cámara";
+        fileInput.setAttribute("capture", "environment");
+    } else {
+        btnLabel.innerText = "Subir Imagen";
+    }
 
     document.getElementById('dropZone').onclick = () => fileInput.click();
 
+    // Diccionario de detección inteligente
     const nutrientMap = {
-        "Calorías": ["calorias", "calories", "kcal", "energía"],
-        "Carbohidratos": ["carbohidratos", "carbs", "h. de carbono"],
-        "Proteína": ["proteina", "protein"],
-        "Sodio": ["sodio", "sodium", "sal"],
-        "Azúcares": ["azucar", "sugar"],
+        "Calorías": ["calorias", "calories", "energía", "energy", "kcal"],
+        "Grasa Total": ["grasa total", "total fat", "lípidos"],
+        "Carbohidratos": ["carbohidrato", "carbohydrate", "glúcidos"],
+        "Proteína": ["proteína", "protein"],
+        "Sodio": ["sodio", "sodium", "salt"],
+        "Azúcares": ["azúcar", "sugar"],
         "Fibra": ["fibra", "fiber"],
-        "Grasas": ["grasa", "fat", "lipidos"],
+        "Vitamina C": ["vitamina c", "vit c"],
+        "Vitamina D": ["vitamina d", "vit d"],
+        "Magnesio": ["magnesio", "magnesium"],
+        "Zinc": ["zinc"],
+        "Omega 3": ["omega 3", "omega-3"],
         "Potasio": ["potasio", "potassium"],
-        "Hierro": ["hierro", "iron"],
-        "Magnesio": ["magnesio", "magnesium"]
+        "Calcio": ["calcio", "calcium"],
+        "Hierro": ["hierro", "iron"]
     };
 
     fileInput.onchange = async (e) => {
@@ -178,74 +159,60 @@
         if(!file) return;
 
         loader.style.display = 'block';
-        container.innerHTML = "";
+        container.innerHTML = ""; // Limpiar cuadros anteriores
         document.getElementById('results').style.display = 'none';
 
         try {
-            const { data: { text } } = await worker.recognize(file);
+            const { data: { text } } = await Tesseract.recognize(file, 'spa+eng');
             const rawText = text.toLowerCase();
-            let found = false;
+            
+            let foundAny = false;
 
-            for (const [label, keys] of Object.entries(nutrientMap)) {
-                for (const key of keys) {
-                    if (rawText.includes(key)) {
-                        const regex = new RegExp(`${key}\\D*(\\d+[,.]?\\d*)`);
+            for (const [label, keywords] of Object.entries(nutrientMap)) {
+                for (const word of keywords) {
+                    if (rawText.includes(word)) {
+                        // Extraer el número que sigue a la palabra
+                        const regex = new RegExp(`${word}\\D*(\\d+[,.]?\\d*)`);
                         const match = rawText.match(regex);
-                        createInput(label, match ? match[1].replace(',', '.') : "0");
-                        found = true;
-                        break;
+                        const value = match ? match[1].replace(',', '.') : "";
+                        
+                        createInput(label, value);
+                        foundAny = true;
+                        break; 
                     }
                 }
             }
 
-            if(found) calcBtn.style.display = 'block';
-            else alert("No se detectó información. Intenta con una imagen más clara.");
+            if(foundAny) document.getElementById('calcBtn').style.display = 'block';
+            else alert("No se detectaron nutrientes claros. Intenta con una foto más enfocada.");
+
         } catch (err) {
-            alert("Error al procesar.");
+            alert("Error procesando imagen.");
         } finally {
             loader.style.display = 'none';
+            fileInput.value = "";
         }
     };
 
     function createInput(label, value) {
         const div = document.createElement('div');
         div.className = 'input-group';
-        div.innerHTML = `<label>${label}</label><input type="text" id="val_${label}" value="${value}">`;
+        div.innerHTML = `
+            <label>${label}</label>
+            <input type="text" value="${value}" placeholder="0">
+        `;
         container.appendChild(div);
     }
 
     function calculate() {
         const results = document.getElementById('results');
         const resContent = document.getElementById('resContent');
-        const recList = document.getElementById('recList');
-        
         results.style.display = 'block';
-        recList.innerHTML = "";
-
-        // Lógica de informe dinámico masivo
-        const sod = parseFloat(document.getElementById('val_Sodio')?.value || 0);
-        const azu = parseFloat(document.getElementById('val_Azúcares')?.value || 0);
-        const fib = parseFloat(document.getElementById('val_Fibra')?.value || 0);
-        const pro = parseFloat(document.getElementById('val_Proteína')?.value || 0);
-
-        resContent.innerText = "Análisis completo: Este producto ha sido evaluado bajo parámetros biométricos. El equilibrio es la clave para un metabolismo optimizado.";
-
-        const recs = [
-            pro > 15 ? "Alto contenido proteico: Ideal para reparación de tejidos y síntesis miofibrilar." : "Contenido proteico moderado: Considera complementar con aminoácidos esenciales.",
-            sod > 400 ? "ALERTA DE SODIO: El nivel de sales es elevado, asegúrate de beber al menos 500ml de agua adicionales." : "Nivel de sodio óptimo: No afecta significativamente la presión osmótica celular.",
-            azu > 10 ? "ALTA CARGA GLUCÉMICA: Monitorea tus niveles de insulina tras el consumo." : "Bajo en azúcares: Ayuda a mantener una curva de glucosa estable.",
-            fib > 5 ? "RICO EN FIBRA: Excelente para la microbiota intestinal y el control saciante." : "Bajo en fibra: Se recomienda acompañar con vegetales o granos integrales.",
-            "Metabolismo: La absorción estimada para este perfil es de 45-90 minutos.",
-            "Tip Pro: Consumir antes de las 6:00 PM para evitar picos energéticos nocturnos."
-        ];
-
-        recs.forEach(txt => {
-            const li = document.createElement('li');
-            li.innerText = txt;
-            recList.appendChild(li);
-        });
-
-        results.scrollIntoView({ behavior: 'smooth' });
+        
+        resContent.innerHTML = `
+            <div style="color:var(--green); font-weight:bold; margin-bottom:10px;">Análisis Bio-Químico Listo</div>
+            <div class="tip">Es una buena fuente de nutrientes esenciales. ¡Es bueno! Pero recuerda que el equilibrio es clave en tu metabolismo.</div>
+        `;
     }
 </script>
 
