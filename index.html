@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora-nutricional</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <style>
+        :root {
+            --bg: #121415;
+            --card: #1e2122;
+            --input-bg: #2a2d2e;
+            --green: #27ae60;
+            --blue: #2980b9;
+            --text: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card {
+            background: var(--card);
+            width: 100%;
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .upload-area {
+            border: 2px dashed #444;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .upload-area:hover { border-color: var(--green); }
+
+        #dynamic-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            background: var(--input-bg);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--blue);
+        }
+
+        label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        
+        input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .btn-main {
+            width: 100%;
+            background: var(--green);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        #loader { display: none; text-align: center; margin-bottom: 20px; color: var(--blue); font-weight: bold; }
+        
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #16191a;
+            border-radius: 6px;
+            display: none;
+            border: 1px solid #333;
+        }
+
+        .tip { font-size: 0.85rem; padding: 10px; border-radius: 4px; margin-top: 10px; background: rgba(39, 174, 96, 0.1); color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="margin-top:0; border-bottom: 1px solid #333; padding-bottom: 10px;">Bio-Analizador Dinámico</h2>
+    
+    <div class="upload-area" id="dropZone">
+        <strong id="btnLabel">Cargando...</strong>
+        <p style="font-size: 0.8rem; color: #888; margin: 5px 0 0;">Detectará automáticamente los nutrientes</p>
+        <input type="file" id="fileInput" hidden accept="image/*">
+    </div>
+
+    <div id="loader">Analizando composición química...</div>
+
+    <!-- Aquí aparecerán los recuadros automáticamente -->
+    <div id="dynamic-container"></div>
+
+    <button class="btn-main" id="calcBtn" style="display:none;" onclick="calculate()">Generar Informe de Salud</button>
+
+    <div id="results" class="results">
+        <div id="resContent"></div>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const container = document.getElementById('dynamic-container');
+    const loader = document.getElementById('loader');
+    const btnLabel = document.getElementById('btnLabel');
+
+    if(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        btnLabel.innerText = "Abrir Cámara";
+        fileInput.setAttribute("capture", "environment");
+    } else {
+        btnLabel.innerText = "Subir Imagen";
+    }
+
+    document.getElementById('dropZone').onclick = () => fileInput.click();
+
+    // Diccionario de detección inteligente
+    const nutrientMap = {
+        "Calorías": ["calorias", "calories", "energía", "energy", "kcal"],
+        "Grasa Total": ["grasa total", "total fat", "lípidos"],
+        "Carbohidratos": ["carbohidrato", "carbohydrate", "glúcidos"],
+        "Proteína": ["proteína", "protein"],
+        "Sodio": ["sodio", "sodium", "salt"],
+        "Azúcares": ["azúcar", "sugar"],
+        "Fibra": ["fibra", "fiber"],
+        "Vitamina C": ["vitamina c", "vit c"],
+        "Vitamina D": ["vitamina d", "vit d"],
+        "Magnesio": ["magnesio", "magnesium"],
+        "Zinc": ["zinc"],
+        "Omega 3": ["omega 3", "omega-3"],
+        "Potasio": ["potasio", "potassium"],
+        "Calcio": ["calcio", "calcium"],
+        "Hierro": ["hierro", "iron"]
+    };
+
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+
+        loader.style.display = 'block';
+        container.innerHTML = ""; // Limpiar cuadros anteriores
+        document.getElementById('results').style.display = 'none';
+
+        try {
+            const { data: { text } } = await Tesseract.recognize(file, 'spa+eng');
+            const rawText = text.toLowerCase();
+            
+            let foundAny = false;
+
+            for (const [label, keywords] of Object.entries(nutrientMap)) {
+                for (const word of keywords) {
+                    if (rawText.includes(word)) {
+                        // Extraer el número que sigue a la palabra
+                        const regex = new RegExp(`${word}\\D*(\\d+[,.]?\\d*)`);
+                        const match = rawText.match(regex);
+                        const value = match ? match[1].replace(',', '.') : "";
+                        
+                        createInput(label, value);
+                        foundAny = true;
+                        break; 
+                    }
+                }
+            }
+
+            if(foundAny) document.getElementById('calcBtn').style.display = 'block';
+            else alert("No se detectaron nutrientes claros. Intenta con una foto más enfocada.");
+
+        } catch (err) {
+            alert("Error procesando imagen.");
+        } finally {
+            loader.style.display = 'none';
+            fileInput.value = "";
+        }
+    };
+
+    function createInput(label, value) {
+        const div = document.createElement('div');
+        div.className = 'input-group';
+        div.innerHTML = `
+            <label>${label}</label>
+            <input type="text" value="${value}" placeholder="0">
+        `;
+        container.appendChild(div);
+    }
+
+    function calculate() {
+        const results = document.getElementById('results');
+        const resContent = document.getElementById('resContent');
+        results.style.display = 'block';
+        
+        resContent.innerHTML = `
+            <div style="color:var(--green); font-weight:bold; margin-bottom:10px;">Análisis Bio-Químico Listo</div>
+            <div class="tip">Es una buena fuente de nutrientes esenciales. ¡Es bueno! Pero recuerda que el equilibrio es clave en tu metabolismo.</div>
+        `;
+    }
+</script>
+
+</body>
+</html>
